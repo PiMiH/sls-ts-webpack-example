@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Cloud Tube Base Infrastructure Setup.
+Parameters:
+  ProdName:
+    Description: Name of the product to prefix items for easy identification (can't be changed)
+    Type: String
+    AllowedValues:
+      - bs
+    Default: bs
+  StackId:
+    Description: Stack identifier used to make resources unique must be lowercase
+    Type: String
+    Default: sls-cld-examp
+    
+Resources:
+  SlsDeploymentBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub '${ProdName}-${StackId}-sls-deployment'
+  PrimaryHttpApi:
+    Type: 'AWS::ApiGatewayV2::Api'
+    Properties:
+      Name: !Sub '${ProdName}-${StackId}-primary-http-api'
+      Description: Primary HTTP API for stack
+      ProtocolType: HTTP
+      Version: '2.0'
+      CorsConfiguration:
+        AllowMethods:
+          - POST
+          - GET
+          - PUT
+          - DELETE
+        AllowHeaders:
+          - Authorization
+          - Content-Type
+          - X-Amz-Date
+          - X-Api-Key
+          - X-Amz-Security-Token
+        ExposeHeaders:
+          - Authorization
+          - Content-Type
+          - X-Amz-Date
+          - X-Api-Key
+          - X-Amz-Security-Token
+        MaxAge: 10000
+  PrimaryHttpApiDefaultStage:
+    Type: 'AWS::ApiGatewayV2::Stage'
+    Properties:
+      ApiId: !Ref PrimaryHttpApi
+      AutoDeploy: true
+      StageName: $default
+      Description: Default stage for primary HTTP API
+Outputs:
+  ProdName:
+    Value: !Ref ProdName
+  StackId:
+    Value: !Ref StackId
+  Region:
+    Value: !Ref 'AWS::Region'
+  ApiPrimaryId:
+    Value: !Ref PrimaryHttpApi
+  SlsDeploymentBucket:
+    Value: !Ref SlsDeploymentBucket
